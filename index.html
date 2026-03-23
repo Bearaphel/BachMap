@@ -10,289 +10,56 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
       --parchment: #f5efe0;
       --parchment-dark: #e8dcc8;
       --ink: #1a1208;
       --sepia: #5c3d1e;
       --gold: #b8860b;
-      --gold-light: #d4a843;
       --red-wax: #8b1a1a;
       --blue-ink: #1a3a5c;
     }
-
-    body {
-      font-family: 'EB Garamond', Georgia, serif;
-      background: var(--parchment);
-      color: var(--ink);
-      min-height: 100vh;
-      overflow-x: hidden;
-    }
-
-    /* Texture de fond parchemin */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    header {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 2.5rem 2rem 1.5rem;
-      border-bottom: 2px solid var(--gold);
-      background: linear-gradient(to bottom, #ede3cc, var(--parchment));
-    }
-
-    header::after {
-      content: '✦  ✦  ✦';
-      display: block;
-      color: var(--gold);
-      font-size: 0.85rem;
-      letter-spacing: 0.4em;
-      margin-top: 0.8rem;
-    }
-
-    h1 {
-      font-family: 'Cinzel', serif;
-      font-weight: 600;
-      font-size: clamp(1.3rem, 3vw, 2rem);
-      color: var(--sepia);
-      letter-spacing: 0.06em;
-      line-height: 1.3;
-    }
-
-    h1 span {
-      display: block;
-      font-size: 0.6em;
-      font-weight: 400;
-      color: var(--gold);
-      letter-spacing: 0.12em;
-      margin-top: 0.3rem;
-    }
-
-    .subtitle {
-      font-style: italic;
-      color: var(--sepia);
-      font-size: 1rem;
-      margin-top: 0.5rem;
-      opacity: 0.8;
-    }
-
-    .main-layout {
-      position: relative;
-      z-index: 1;
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 0;
-      height: calc(100vh - 140px);
-      min-height: 500px;
-    }
-
-    /* Panneau latéral */
-    .sidebar {
-      background: linear-gradient(160deg, #ede3cc 0%, #e4d5b5 100%);
-      border-right: 2px solid var(--gold);
-      overflow-y: auto;
-      padding: 1.2rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-    }
-
-    .sidebar::-webkit-scrollbar { width: 6px; }
-    .sidebar::-webkit-scrollbar-track { background: var(--parchment-dark); }
+    body { font-family: 'EB Garamond', Georgia, serif; background: var(--parchment); color: var(--ink); min-height: 100vh; overflow-x: hidden; }
+    header { text-align: center; padding: 2rem 2rem 1.2rem; border-bottom: 2px solid var(--gold); background: linear-gradient(to bottom, #ede3cc, var(--parchment)); }
+    header::after { content: '✦  ✦  ✦'; display: block; color: var(--gold); font-size: 0.85rem; letter-spacing: 0.4em; margin-top: 0.7rem; }
+    h1 { font-family: 'Cinzel', serif; font-weight: 600; font-size: clamp(1.2rem, 2.8vw, 1.9rem); color: var(--sepia); letter-spacing: 0.06em; line-height: 1.3; }
+    h1 span { display: block; font-size: 0.58em; font-weight: 400; color: var(--gold); letter-spacing: 0.12em; margin-top: 0.3rem; }
+    .subtitle { font-style: italic; color: var(--sepia); font-size: 0.95rem; margin-top: 0.4rem; opacity: 0.8; }
+    .main-layout { display: grid; grid-template-columns: 320px 1fr; height: calc(100vh - 130px); min-height: 500px; }
+    .sidebar { background: linear-gradient(160deg, #ede3cc 0%, #e4d5b5 100%); border-right: 2px solid var(--gold); overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.45rem; }
+    .sidebar::-webkit-scrollbar { width: 5px; }
     .sidebar::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; }
-
-    .sidebar-title {
-      font-family: 'Cinzel', serif;
-      font-size: 0.7rem;
-      letter-spacing: 0.18em;
-      color: var(--gold);
-      text-transform: uppercase;
-      text-align: center;
-      padding-bottom: 0.6rem;
-      border-bottom: 1px solid var(--parchment-dark);
-      margin-bottom: 0.3rem;
-    }
-
-    .stop-card {
-      background: rgba(255,255,255,0.45);
-      border: 1px solid var(--parchment-dark);
-      border-left: 4px solid var(--gold);
-      border-radius: 2px;
-      padding: 0.75rem 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s ease;
-      position: relative;
-    }
-
-    .stop-card:hover, .stop-card.active {
-      background: rgba(255,255,255,0.75);
-      border-left-color: var(--red-wax);
-      box-shadow: 2px 3px 12px rgba(92,61,30,0.15);
-      transform: translateX(2px);
-    }
-
-    .stop-card.active {
-      border-left-color: var(--red-wax);
-    }
-
-    .stop-number {
-      position: absolute;
-      top: 0.6rem; right: 0.7rem;
-      font-family: 'Cinzel', serif;
-      font-size: 0.65rem;
-      color: var(--gold);
-      opacity: 0.7;
-    }
-
-    .stop-dates {
-      font-family: 'Cinzel', serif;
-      font-size: 0.68rem;
-      color: var(--gold);
-      letter-spacing: 0.08em;
-      margin-bottom: 0.2rem;
-    }
-
-    .stop-city {
-      font-size: 1.05rem;
-      font-weight: 500;
-      color: var(--sepia);
-      line-height: 1.2;
-    }
-
-    .stop-role {
-      font-style: italic;
-      font-size: 0.82rem;
-      color: var(--blue-ink);
-      margin-top: 0.15rem;
-      opacity: 0.85;
-    }
-
-    .stop-note {
-      font-size: 0.8rem;
-      color: var(--ink);
-      margin-top: 0.4rem;
-      line-height: 1.4;
-      opacity: 0.75;
-      display: none;
-    }
-
-    .stop-card.active .stop-note {
-      display: block;
-    }
-
-    /* Carte */
-    #map {
-      width: 100%;
-      height: 100%;
-      background: #d9cdb4;
-    }
-
-    .leaflet-container {
-      font-family: 'EB Garamond', Georgia, serif;
-    }
-
-    /* Popups personnalisés */
-    .leaflet-popup-content-wrapper {
-      background: var(--parchment);
-      border: 2px solid var(--gold);
-      border-radius: 2px;
-      box-shadow: 4px 6px 20px rgba(92,61,30,0.3);
-      max-width: 280px;
-    }
-
-    .leaflet-popup-tip {
-      background: var(--gold);
-    }
-
-    .leaflet-popup-content {
-      margin: 12px 15px;
-      font-family: 'EB Garamond', Georgia, serif;
-      color: var(--ink);
-    }
-
-    .popup-dates {
-      font-family: 'Cinzel', serif;
-      font-size: 0.7rem;
-      color: var(--gold);
-      letter-spacing: 0.1em;
-      margin-bottom: 4px;
-    }
-
-    .popup-city {
-      font-family: 'Cinzel', serif;
-      font-size: 1.1rem;
-      color: var(--sepia);
-      font-weight: 600;
-      line-height: 1.2;
-    }
-
-    .popup-role {
-      font-style: italic;
-      font-size: 0.88rem;
-      color: var(--blue-ink);
-      margin: 4px 0;
-    }
-
-    .popup-desc {
-      font-size: 0.85rem;
-      line-height: 1.45;
-      color: var(--ink);
-      margin-top: 6px;
-      border-top: 1px solid var(--parchment-dark);
-      padding-top: 6px;
-    }
-
-    /* Marqueurs SVG */
-    .bach-marker {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    footer {
-      position: relative;
-      z-index: 1;
-      text-align: center;
-      padding: 0.6rem;
-      font-size: 0.75rem;
-      font-style: italic;
-      color: var(--sepia);
-      opacity: 0.6;
-      border-top: 1px solid var(--parchment-dark);
-      background: var(--parchment);
-    }
-
-    /* Responsive */
-    @media (max-width: 700px) {
-      .main-layout {
-        grid-template-columns: 1fr;
-        grid-template-rows: 1fr 220px;
-        height: auto;
-      }
+    .sidebar-title { font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 0.18em; color: var(--gold); text-transform: uppercase; text-align: center; padding-bottom: 0.5rem; border-bottom: 1px solid var(--parchment-dark); margin-bottom: 0.2rem; }
+    .stop-card { background: rgba(255,255,255,0.45); border: 1px solid var(--parchment-dark); border-left: 4px solid var(--gold); border-radius: 2px; padding: 0.65rem 0.8rem; cursor: pointer; transition: all 0.2s ease; position: relative; }
+    .stop-card:hover, .stop-card.active { background: rgba(255,255,255,0.8); border-left-color: var(--red-wax); box-shadow: 2px 3px 10px rgba(92,61,30,0.15); transform: translateX(2px); }
+    .stop-number { position: absolute; top: 0.5rem; right: 0.6rem; font-family: 'Cinzel', serif; font-size: 0.6rem; color: var(--gold); opacity: 0.7; }
+    .stop-dates { font-family: 'Cinzel', serif; font-size: 0.63rem; color: var(--gold); letter-spacing: 0.07em; margin-bottom: 0.15rem; }
+    .stop-city { font-size: 1rem; font-weight: 500; color: var(--sepia); }
+    .stop-role { font-style: italic; font-size: 0.78rem; color: var(--blue-ink); margin-top: 0.1rem; }
+    #map { width: 100%; height: 100%; }
+    .leaflet-popup-content-wrapper { background: var(--parchment); border: 2px solid var(--gold); border-radius: 2px; box-shadow: 4px 6px 20px rgba(92,61,30,0.35); max-width: 290px; }
+    .leaflet-popup-tip { background: var(--gold); }
+    .leaflet-popup-content { margin: 10px 12px; font-family: 'EB Garamond', Georgia, serif; color: var(--ink); }
+    .popup-dates { font-family: 'Cinzel', serif; font-size: 0.68rem; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 3px; }
+    .popup-city { font-family: 'Cinzel', serif; font-size: 1.05rem; color: var(--sepia); font-weight: 600; }
+    .popup-role { font-style: italic; font-size: 0.85rem; color: var(--blue-ink); margin: 3px 0 6px; }
+    .popup-desc { font-size: 0.83rem; line-height: 1.45; color: var(--ink); border-top: 1px solid var(--parchment-dark); padding-top: 6px; margin-bottom: 8px; }
+    .popup-gravure-link { display: inline-block; font-family: 'Cinzel', serif; font-size: 0.63rem; letter-spacing: 0.06em; color: var(--red-wax); text-decoration: none; border: 1px solid var(--red-wax); padding: 3px 8px; border-radius: 1px; transition: all 0.2s; }
+    .popup-gravure-link:hover { background: var(--red-wax); color: var(--parchment); }
+    footer { text-align: center; padding: 0.5rem; font-size: 0.72rem; font-style: italic; color: var(--sepia); opacity: 0.6; border-top: 1px solid var(--parchment-dark); }
+    @media (max-width: 680px) {
+      .main-layout { grid-template-columns: 1fr; grid-template-rows: 1fr 200px; height: auto; }
       #map { height: 55vh; }
-      .sidebar { height: 220px; flex-direction: row; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: 0.5rem; padding: 0.8rem; }
-      .stop-card { min-width: 200px; }
+      .sidebar { height: 200px; flex-direction: row; overflow-x: auto; overflow-y: hidden; padding: 0.7rem; }
+      .stop-card { min-width: 180px; }
     }
   </style>
 </head>
 <body>
-
 <header>
-  <h1>Johann Sebastian Bach
-    <span>Itinéraire d'une vie · 1685 – 1750</span>
-  </h1>
+  <h1>Johann Sebastian Bach <span>Itinéraire d'une vie · 1685 – 1750</span></h1>
   <p class="subtitle">Les villes qui ont façonné le compositeur et son œuvre</p>
 </header>
-
 <div class="main-layout">
   <aside class="sidebar">
     <div class="sidebar-title">Étapes biographiques</div>
@@ -300,202 +67,128 @@
   </aside>
   <div id="map"></div>
 </div>
-
-<footer>Carte interactive · Sources : Christoph Wolff, <em>Johann Sebastian Bach: The Learned Musician</em> · Gilles Cantagrel, <em>J. S. Bach : Passions, Messes et Motets</em></footer>
+<footer>Carte interactive · Sources : Christoph Wolff, <em>The Learned Musician</em> · Gilles Cantagrel, <em>Passions, Messes et Motets</em> · Gravures : Wikimedia Commons (domaine public)</footer>
 
 <script>
 const stops = [
   {
-    city: "Eisenach",
-    dates: "1685",
-    role: "Naissance",
-    desc: "Johann Sebastian Bach naît le 21 mars 1685 dans cette ville de Thuringe imprégnée de lutheranisme, berceau de toute une lignée de musiciens Bach. Luther lui-même y avait séjourné à la Wartburg.",
-    lat: 50.9796, lng: 10.3147,
-    type: "naissance"
+    city: "Eisenach", dates: "1685", role: "Naissance",
+    desc: "Johann Sebastian Bach naît le 21 mars 1685 dans cette ville de Thuringe, berceau d'une longue lignée de musiciens. Luther y avait traduit la Bible à la Wartburg ; Pachelbel y fut organiste peu avant la naissance de Bach.",
+    lat: 50.9796, lng: 10.3147, type: "naissance",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Eisenach_in_the_17th_century",
+    gravureLabel: "🖼 Gravures d'Eisenach au XVIIe s."
   },
   {
-    city: "Ohrdruf",
-    dates: "1695 – 1700",
-    role: "Chez son frère Johann Christoph",
-    desc: "Orphelin à dix ans, Bach rejoint son frère aîné organiste. Formation initiale au clavecin et à l'orgue. Il copie des partitions à la bougie, la nuit, pour les étudier en secret.",
-    lat: 50.8274, lng: 10.7341,
-    type: "formation"
+    city: "Ohrdruf", dates: "1695 – 1700", role: "Chez son frère Johann Christoph",
+    desc: "Orphelin à dix ans, Bach rejoint son frère aîné organiste. Formation initiale au clavecin et à l'orgue. Il recopie des partitions la nuit à la bougie, que son frère lui cachait.",
+    lat: 50.8274, lng: 10.7341, type: "formation",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Ohrdruf",
+    gravureLabel: "🖼 Images d'Ohrdruf"
   },
   {
-    city: "Lüneburg",
-    dates: "1700 – 1703",
-    role: "École Saint-Michel",
-    desc: "Boursier au Michaelisschule. Contact décisif avec la musique de cour française et les maîtres de l'orgue nordique. Voyages répétés à Hambourg pour entendre le grand Reinken.",
-    lat: 53.2479, lng: 10.4161,
-    type: "formation"
+    city: "Lüneburg", dates: "1700 – 1703", role: "École Saint-Michel",
+    desc: "Boursier au Michaelisschule. Contact décisif avec la musique de cour française. Voyages répétés à Hambourg pour entendre Reinken à l'orgue de Saint-Catherine.",
+    lat: 53.2479, lng: 10.4161, type: "formation",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:L%C3%BCneburg_in_the_17th_century",
+    gravureLabel: "🖼 Gravures de Lüneburg au XVIIe s."
   },
   {
-    city: "Arnstadt",
-    dates: "1703 – 1707",
-    role: "Organiste à la Neue Kirche",
-    desc: "Premier poste officiel. Bach compose ses premières œuvres importantes pour orgue. C'est d'ici qu'il part à pied vers Lübeck pour rencontrer Buxtehude — sans autorisation de son employeur.",
-    lat: 50.8355, lng: 10.9478,
-    type: "poste"
+    city: "Arnstadt", dates: "1703 – 1707", role: "Organiste à la Neue Kirche",
+    desc: "Premier poste officiel. Bach compose ses premières grandes œuvres pour orgue. C'est d'ici qu'il part à pied pour Lübeck — il restera quatre mois au lieu des quatre semaines accordées.",
+    lat: 50.8355, lng: 10.9478, type: "poste",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Arnstadt_in_the_17th_century",
+    gravureLabel: "🖼 Gravures d'Arnstadt au XVIIe s."
   },
   {
-    city: "Lübeck",
-    dates: "Hiver 1705 – 1706",
-    role: "Voyage chez Buxtehude",
-    desc: "Voyage à pied de quelque 400 km pour rencontrer Dietrich Buxtehude, maître de l'orgue nordique. Bach restera quatre mois — bien au-delà des quatre semaines accordées. Rencontre déterminante pour son écriture.",
-    lat: 53.8655, lng: 10.6866,
-    type: "voyage"
+    city: "Lübeck", dates: "Hiver 1705 – 1706", role: "Voyage chez Buxtehude",
+    desc: "Voyage de quelque 400 km pour rencontrer Dietrich Buxtehude, maître de l'orgue nordique à la Marienkirche. Séjour déterminant pour son écriture contrapuntique et son sens du grandiose.",
+    lat: 53.8655, lng: 10.6866, type: "voyage",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:L%C3%BCbeck_in_the_17th_century",
+    gravureLabel: "🖼 Gravures de Lübeck au XVIIe s."
   },
   {
-    city: "Mühlhausen",
-    dates: "1707 – 1708",
-    role: "Organiste à Divi Blasii",
-    desc: "Organiste à l'église Saint-Blaise. Il y compose la cantate BWV 71, seule œuvre publiée de son vivant. Les tensions théologiques entre piétisme et orthodoxie luthérienne le poussent à partir.",
-    lat: 51.2107, lng: 10.4659,
-    type: "poste"
+    city: "Mühlhausen", dates: "1707 – 1708", role: "Organiste à Divi Blasii",
+    desc: "Organiste à Saint-Blaise. Compose la cantate BWV 71, seule œuvre publiée de son vivant. Les tensions entre piétisme et orthodoxie luthérienne le poussent à partir vers Weimar.",
+    lat: 51.2107, lng: 10.4659, type: "poste",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:M%C3%BChlhausen%2C_Thuringia_in_the_17th_century",
+    gravureLabel: "🖼 Gravures de Mühlhausen au XVIIe s."
   },
   {
-    city: "Weimar",
-    dates: "1708 – 1717",
-    role: "Organiste & Konzertmeister",
-    desc: "Neuf années fécondes à la cour du duc Wilhelm Ernst. Grande production pour orgue (Toccatas, Préludes & Fugues) et premières cantates liturgiques. Découverte et transcription des concertos de Vivaldi. En 1717, emprisonné un mois pour avoir voulu quitter le duc sans autorisation.",
-    lat: 50.9795, lng: 11.3235,
-    type: "poste"
+    city: "Weimar", dates: "1708 – 1717", role: "Organiste & Konzertmeister",
+    desc: "Neuf années fécondes à la cour du duc Wilhelm Ernst. Grande production pour orgue, premières cantates liturgiques, transcriptions des concertos de Vivaldi. En 1717, emprisonné un mois pour avoir voulu quitter le duc sans autorisation.",
+    lat: 50.9795, lng: 11.3235, type: "poste",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Weimar_in_the_17th_century",
+    gravureLabel: "🖼 Gravures de Weimar au XVIIe s."
   },
   {
-    city: "Köthen",
-    dates: "1717 – 1723",
-    role: "Hofkapellmeister",
-    desc: "Au service du prince Leopold, mélomane éclairé. Sans obligations liturgiques, Bach se consacre à la musique instrumentale : Concertos Brandebourgeois, Suites pour violoncelle, Sonates & Partitas pour violon seul, Clavier bien tempéré I. Mort de Maria Barbara (1720), mariage avec Anna Magdalena (1721).",
-    lat: 51.7506, lng: 11.9802,
-    type: "poste"
+    city: "Köthen", dates: "1717 – 1723", role: "Hofkapellmeister",
+    desc: "Au service du prince Leopold, mélomane éclairé. Sans obligations liturgiques, Bach se consacre à la musique instrumentale : Concertos Brandebourgeois, Suites pour violoncelle, Sonates & Partitas pour violon seul, Clavier bien tempéré I.",
+    lat: 51.7506, lng: 11.9802, type: "poste",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:K%C3%B6then_(Anhalt)_in_the_17th_century",
+    gravureLabel: "🖼 Gravures de Köthen au XVIIe s."
   },
   {
-    city: "Dresden",
-    dates: "Visites 1717 – 1747",
-    role: "Cour royale de Saxe",
-    desc: "Séjours répétés à la fastueuse cour catholique. Bach obtient en 1736 le titre de Compositeur de la Cour royale de Pologne, après avoir dédié la Missa (BWV 232) au souverain. Contact avec le style galant français et le concerto italien.",
-    lat: 51.0504, lng: 13.7373,
-    type: "visite"
+    city: "Dresden", dates: "Visites 1717 – 1747", role: "Cour royale de Saxe",
+    desc: "Séjours répétés à la fastueuse cour catholique. Bach obtient en 1736 le titre de Compositeur de la Cour royale de Pologne, après avoir dédié la Missa (BWV 232) au souverain.",
+    lat: 51.0504, lng: 13.7373, type: "visite",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Paintings_of_Dresden_by_Bernardo_Bellotto",
+    gravureLabel: "🖼 Dresde par Bellotto (v. 1748)"
   },
   {
-    city: "Leipzig",
-    dates: "1723 – 1750 †",
-    role: "Thomaskantor",
-    desc: "Vingt-sept années au sommet. Kantor de la Thomasschule et directeur musical des quatre principales églises. Composition de la quasi-totalité de son œuvre vocale : trois cycles de cantates, Passions, Messe en si mineur, Magnificat, motets. Meurt le 28 juillet 1750.",
-    lat: 51.3397, lng: 12.3731,
-    type: "mort"
+    city: "Leipzig", dates: "1723 – 1750 †", role: "Thomaskantor",
+    desc: "Vingt-sept années au sommet. Kantor de la Thomasschule, directeur musical des quatre principales églises. Composition de la quasi-totalité de l'œuvre vocale : cantates, Passions, Messe en si mineur, Magnificat, motets. Meurt le 28 juillet 1750.",
+    lat: 51.3397, lng: 12.3731, type: "mort",
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Leipzig_in_the_18th_century",
+    gravureLabel: "🖼 Gravures de Leipzig au XVIIIe s."
   }
 ];
 
-// Couleurs selon le type d'étape
-const typeColors = {
-  naissance: '#2d7a2d',
-  formation: '#1a3a5c',
-  poste:     '#5c3d1e',
-  voyage:    '#8b1a1a',
-  visite:    '#6b4c8b',
-  mort:      '#1a1208'
-};
+const typeColors = { naissance:'#2d7a2d', formation:'#1a3a5c', poste:'#5c3d1e', voyage:'#8b1a1a', visite:'#6b4c8b', mort:'#1a1208' };
+const typeLabels = { naissance:'✦ Naissance', formation:'◆ Formation', poste:'♪ Poste', voyage:'↗ Voyage', visite:'◇ Visites', mort:'✝ Dernière demeure' };
 
-const typeLabels = {
-  naissance: '✦ Naissance',
-  formation: '◆ Formation',
-  poste:     '♪ Poste',
-  voyage:    '↗ Voyage',
-  visite:    '◇ Visites',
-  mort:      '✝ Dernière demeure'
-};
-
-// Initialisation de la carte
-const map = L.map('map', {
-  center: [51.8, 11.5],
-  zoom: 6,
-  zoomControl: true
-});
-
-// Tuiles style vintage/sépia
+const map = L.map('map', { center: [51.8, 11.5], zoom: 6 });
 L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-  attribution: '© OpenStreetMap contributors © CARTO',
-  subdomains: 'abcd',
-  maxZoom: 14
+  attribution: '© OpenStreetMap contributors © CARTO', subdomains: 'abcd', maxZoom: 14
 }).addTo(map);
 
-// Marqueurs et liste latérale
-const markers = [];
-const stopList = document.getElementById('stop-list');
+L.polyline(stops.map(s => [s.lat, s.lng]), { color: '#b8860b', weight: 2, opacity: 0.5, dashArray: '6, 8' }).addTo(map);
 
 function createMarkerIcon(stop, index) {
   const color = typeColors[stop.type] || '#5c3d1e';
-  const svg = `
-    <svg width="32" height="40" viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <filter id="shadow${index}" x="-30%" y="-30%" width="160%" height="160%">
-          <feDropShadow dx="1" dy="2" stdDeviation="2" flood-color="rgba(0,0,0,0.35)"/>
-        </filter>
-      </defs>
-      <path d="M16 0 C7.2 0 0 7.2 0 16 C0 26 16 40 16 40 C16 40 32 26 32 16 C32 7.2 24.8 0 16 0Z"
-            fill="${color}" filter="url(#shadow${index})"/>
-      <circle cx="16" cy="16" r="8" fill="rgba(255,255,255,0.25)"/>
-      <text x="16" y="20" text-anchor="middle" font-family="Cinzel,serif" font-size="9"
-            font-weight="600" fill="white">${index + 1}</text>
-    </svg>`;
-  return L.divIcon({
-    html: svg,
-    iconSize: [32, 40],
-    iconAnchor: [16, 40],
-    popupAnchor: [0, -42],
-    className: ''
-  });
+  const svg = `<svg width="30" height="38" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">
+    <path d="M15 0 C6.7 0 0 6.7 0 15 C0 24.5 15 38 15 38 C15 38 30 24.5 30 15 C30 6.7 23.3 0 15 0Z" fill="${color}" opacity="0.92"/>
+    <circle cx="15" cy="15" r="7" fill="rgba(255,255,255,0.2)"/>
+    <text x="15" y="19.5" text-anchor="middle" font-family="Cinzel,serif" font-size="8.5" font-weight="600" fill="white">${index + 1}</text>
+  </svg>`;
+  return L.divIcon({ html: svg, iconSize: [30,38], iconAnchor: [15,38], popupAnchor: [0,-40], className: '' });
 }
 
-// Ligne de parcours (trait pointillé doré)
-const latlngs = stops.map(s => [s.lat, s.lng]);
-L.polyline(latlngs, {
-  color: '#b8860b',
-  weight: 2,
-  opacity: 0.55,
-  dashArray: '6, 8'
-}).addTo(map);
+const stopList = document.getElementById('stop-list');
 
 stops.forEach((stop, i) => {
-  // Marqueur
-  const marker = L.marker([stop.lat, stop.lng], {
-    icon: createMarkerIcon(stop, i)
-  }).addTo(map);
-
+  const marker = L.marker([stop.lat, stop.lng], { icon: createMarkerIcon(stop, i) }).addTo(map);
   marker.bindPopup(`
     <div class="popup-dates">${typeLabels[stop.type]} · ${stop.dates}</div>
     <div class="popup-city">${stop.city}</div>
     <div class="popup-role">${stop.role}</div>
     <div class="popup-desc">${stop.desc}</div>
-  `, { maxWidth: 280 });
+    <a class="popup-gravure-link" href="${stop.gravureUrl}" target="_blank" rel="noopener">${stop.gravureLabel}</a>
+  `, { maxWidth: 290 });
 
-  markers.push(marker);
-
-  // Carte dans le panneau latéral
   const card = document.createElement('div');
   card.className = 'stop-card';
-  card.innerHTML = `
-    <span class="stop-number">${i + 1}</span>
-    <div class="stop-dates">${stop.dates}</div>
-    <div class="stop-city">${stop.city}</div>
-    <div class="stop-role">${stop.role}</div>
-    <div class="stop-note">${stop.desc}</div>
-  `;
-
+  card.innerHTML = `<span class="stop-number">${i+1}</span><div class="stop-dates">${stop.dates}</div><div class="stop-city">${stop.city}</div><div class="stop-role">${stop.role}</div>`;
   card.addEventListener('click', () => {
     document.querySelectorAll('.stop-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
     map.setView([stop.lat, stop.lng], 8, { animate: true, duration: 0.8 });
     marker.openPopup();
   });
-
   marker.on('click', () => {
     document.querySelectorAll('.stop-card').forEach(c => c.classList.remove('active'));
     card.classList.add('active');
     card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   });
-
   stopList.appendChild(card);
 });
 </script>

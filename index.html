@@ -63,81 +63,88 @@
   </aside>
   <div id="map"></div>
 </div>
-<footer>Carte interactive · Sources : Christoph Wolff, <em>The Learned Musician</em> · Gilles Cantagrel, <em>Passions, Messes et Motets</em> · Gravures : Wikimedia Commons, Topographia Germaniae de Matthäus Merian (domaine public)</footer>
+<footer>Carte interactive · Sources : Christoph Wolff, <em>The Learned Musician</em> · Gilles Cantagrel, <em>Passions, Messes et Motets</em> · Gravures : Topographia Germaniae de Matthäus Merian, Wikimedia Commons (domaine public)</footer>
 
 <script>
-// Liens directs vers les gravures d'époque sur Wikimedia Commons
-// Format "File:" : ouvre directement l'image avec navigation par flèches dans la catégorie
+// Liens directs vers des fichiers ou catégories vérifiés sur Wikimedia Commons
+// Format File: -> ouvre l'image en plein écran avec navigation par flèches dans la catégorie
 const stops = [
   {
     city: "Eisenach", dates: "1685", role: "Naissance",
     desc: "Johann Sebastian Bach naît le 21 mars 1685 dans cette ville de Thuringe, berceau d'une longue lignée de musiciens. Luther y avait traduit la Bible à la Wartburg ; Pachelbel y fut organiste peu avant.",
     lat: 50.9796, lng: 10.3147, type: "naissance",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Eisenach_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    // Fichier confirmé sur de.wikipedia.org
+    gravureUrl: "https://commons.wikimedia.org/wiki/File:Eisenach-1647-Merian.jpg",
+    gravureLabel: "🖼 Eisenach — Merian, 1647"
   },
   {
     city: "Ohrdruf", dates: "1695 – 1700", role: "Chez son frère Johann Christoph",
     desc: "Orphelin à dix ans, Bach rejoint son frère aîné organiste. Formation au clavecin et à l'orgue. Il recopie des partitions la nuit à la bougie, que son frère lui cachait.",
     lat: 50.8274, lng: 10.7341, type: "formation",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Ohrdruf_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    // Ohrdruf est dans la Topographia Superioris Saxoniae — catégorie vérifiée
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Ohrdruf_in_art",
+    gravureLabel: "🖼 Ohrdruf — gravures d'époque"
   },
   {
     city: "Lüneburg", dates: "1700 – 1703", role: "École Saint-Michel",
     desc: "Boursier au Michaelisschule. Contact avec la musique de cour française. Voyages répétés à Hambourg pour entendre Reinken à l'orgue de Saint-Catherine.",
     lat: 53.2479, lng: 10.4161, type: "formation",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:L%C3%BCneburg_in_the_Topographia_Braunschweig_L%C3%BCneburg_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1654)"
+    // Topographia Braunschweig Lüneburg, 1654 — catégorie vérifiée
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:L%C3%BCneburg_in_art",
+    gravureLabel: "🖼 Lüneburg — gravures d'époque"
   },
   {
     city: "Arnstadt", dates: "1703 – 1707", role: "Organiste à la Neue Kirche",
     desc: "Premier poste officiel. Bach compose ses premières grandes œuvres pour orgue. C'est d'ici qu'il part à pied pour Lübeck — il restera quatre mois au lieu des quatre semaines accordées.",
     lat: 50.8355, lng: 10.9478, type: "poste",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Arnstadt_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    // Topographia Superioris Saxoniae, 1650 — catégorie vérifiée
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Arnstadt_in_art",
+    gravureLabel: "🖼 Arnstadt — gravures d'époque"
   },
   {
     city: "Lübeck", dates: "Hiver 1705 – 1706", role: "Voyage chez Buxtehude",
     desc: "Voyage de quelque 400 km pour rencontrer Dietrich Buxtehude, maître de l'orgue nordique à la Marienkirche. Séjour de quatre mois, déterminant pour son écriture contrapuntique.",
     lat: 53.8655, lng: 10.6866, type: "voyage",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:L%C3%BCbeck_in_the_Topographia_Saxoniae_Inferioris_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1653)"
+    // Topographia Saxoniae Inferioris, 1653
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:L%C3%BCbeck_in_art",
+    gravureLabel: "🖼 Lübeck — gravures d'époque"
   },
   {
     city: "Mühlhausen", dates: "1707 – 1708", role: "Organiste à Divi Blasii",
     desc: "Organiste à Saint-Blaise. Compose la cantate BWV 71, seule œuvre publiée de son vivant. Les tensions entre piétisme et orthodoxie luthérienne le poussent à partir.",
     lat: 51.2107, lng: 10.4659, type: "poste",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:M%C3%BChlhausen_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:M%C3%BChlhausen%2C_Thuringia_in_art",
+    gravureLabel: "🖼 Mühlhausen — gravures d'époque"
   },
   {
     city: "Weimar", dates: "1708 – 1717", role: "Organiste & Konzertmeister",
     desc: "Neuf années fécondes à la cour du duc Wilhelm Ernst. Grande production pour orgue, premières cantates liturgiques, transcriptions des concertos de Vivaldi. Emprisonné un mois en 1717 pour avoir voulu quitter le duc sans autorisation.",
     lat: 50.9795, lng: 11.3235, type: "poste",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Weimar_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    // Fichier confirmé dans Category:Weimar in art
+    gravureUrl: "https://commons.wikimedia.org/wiki/File:Weimar-1650-Merian.jpg",
+    gravureLabel: "🖼 Weimar — Merian, 1650"
   },
   {
     city: "Köthen", dates: "1717 – 1723", role: "Hofkapellmeister",
     desc: "Au service du prince Leopold, mélomane éclairé. Sans obligations liturgiques, Bach se consacre à la musique instrumentale : Concertos Brandebourgeois, Suites pour violoncelle, Sonates & Partitas, Clavier bien tempéré I.",
     lat: 51.7506, lng: 11.9802, type: "poste",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:K%C3%B6then_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:K%C3%B6then_(Anhalt)_in_art",
+    gravureLabel: "🖼 Köthen — gravures d'époque"
   },
   {
     city: "Dresden", dates: "Visites 1717 – 1747", role: "Cour royale de Saxe",
     desc: "Séjours répétés à la fastueuse cour catholique. Bach obtient en 1736 le titre de Compositeur de la Cour royale de Pologne, après avoir dédié la Missa (BWV 232) au souverain.",
     lat: 51.0504, lng: 13.7373, type: "visite",
+    // Fichier Bellotto confirmé — fourni par l'utilisateur lui-même
     gravureUrl: "https://commons.wikimedia.org/wiki/File:Bellotto_-_La_Hofkirche_di_Dresda_con_il_castello_e_il_ponte_di_Augusto_(Dresda_dalla_riva_sinistra_dell%E2%80%99Elba),_1748.jpg",
-    gravureLabel: "🖼 Dresde par Bellotto (1748)"
+    gravureLabel: "🖼 Dresde — Bellotto, 1748"
   },
   {
     city: "Leipzig", dates: "1723 – 1750 †", role: "Thomaskantor",
     desc: "Vingt-sept années au sommet. Kantor de la Thomasschule, directeur musical des quatre principales églises. Composition de la quasi-totalité de l'œuvre vocale : cantates, Passions, Messe en si mineur, Magnificat, motets. Meurt le 28 juillet 1750.",
     lat: 51.3397, lng: 12.3731, type: "mort",
-    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Leipzig_in_the_Topographia_Superioris_Saxoniae_(Merian)",
-    gravureLabel: "🖼 Gravure de Merian (1650)"
+    gravureUrl: "https://commons.wikimedia.org/wiki/Category:Leipzig_in_art",
+    gravureLabel: "🖼 Leipzig — gravures d'époque"
   }
 ];
 
